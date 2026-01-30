@@ -1,0 +1,58 @@
+export const COLORS = {
+  light: {
+    background: "#FFFBF5",
+    foreground: "#292524",
+    card: "#FDF8F3",
+    cardForeground: "#292524",
+    primary: "#059669",
+    primaryForeground: "#FFFFFF",
+    secondary: "#F5F0E8",
+    secondaryForeground: "#44403C",
+    muted: "#F5F0E8",
+    mutedForeground: "#78716C",
+    accent: "#D97706",
+    accentForeground: "#1C1917",
+    destructive: "#EF4444",
+    destructiveForeground: "#FFFFFF",
+    border: "#E7E0D6",
+    input: "#E7E0D6",
+    ring: "#059669",
+  },
+  dark: {
+    background: "#1A1512",
+    foreground: "#FAF9F7",
+    card: "#231E1A",
+    cardForeground: "#FAF9F7",
+    primary: "#10B981",
+    primaryForeground: "#FFFFFF",
+    secondary: "#2D2520",
+    secondaryForeground: "#E7E5E4",
+    muted: "#2D2520",
+    mutedForeground: "#A8A29E",
+    accent: "#FBBF24",
+    accentForeground: "#1C1917",
+    destructive: "#DC2626",
+    destructiveForeground: "#FFFFFF",
+    border: "#3D3530",
+    input: "#3D3530",
+    ring: "#10B981",
+  },
+} as const;
+
+export const FONTS = {
+  heading: "Outfit_700Bold",
+  headingSemiBold: "Outfit_600SemiBold",
+  headingMedium: "Outfit_500Medium",
+  headingRegular: "Outfit_400Regular",
+  body: "Inter_400Regular",
+  bodyMedium: "Inter_500Medium",
+  bodySemiBold: "Inter_600SemiBold",
+  bodyBold: "Inter_700Bold",
+};
+
+export const RADIUS = {
+  sm: 6,
+  md: 8,
+  lg: 10,
+  xl: 16,
+};

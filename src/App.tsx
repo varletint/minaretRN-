@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { StatusBar } from "expo-status-bar";
-import { View, ScrollView, StyleSheet } from "react-native";
+import { View, ScrollView, StyleSheet, ActivityIndicator } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
@@ -8,10 +8,13 @@ import { Radio, MapPin, Clock, Heart } from "lucide-react-native";
 
 import { useThemeStore } from "./stores/themeStore";
 import { usePlayerStore } from "./stores/playerStore";
+import { QueryProvider } from "./providers/QueryProvider";
+import { useStations } from "./hooks/useStations";
+import type { StationListItem } from "./types/station";
 import { Navbar } from "./components/ui/Navbar";
 import { Text } from "./components/ui/Text";
 import { FeatureCard, type GradientName } from "./components/ui/FeatureCard";
-import { MosqueCard } from "./components/ui/MosqueCard";
+import { MosqueCard } from "./components/ui/MosquesCardF";
 import { AudioPlayer } from "./components/ui/AudioPlayer";
 
 // Keep the splash screen visible while loading fonts
@@ -50,32 +53,7 @@ const features: {
   },
 ];
 
-// Mock mosque data
-const mosques = [
-  {
-    id: "1",
-    name: "Massalacin Zawiyya",
-    location: "Kontagora, Niger State",
-    listeners: 500,
-    isLive: true,
-  },
-  {
-    id: "2",
-    name: "Massalacin Nasarawa",
-    location: "Kontagora, Niger State",
-    listeners: 500,
-    isLive: true,
-  },
-  {
-    id: "3",
-    name: "Central Mosque",
-    location: "Kontagora, Niger State",
-    listeners: 3200,
-    isLive: false,
-  },
-];
-
-export default function App() {
+function AppContent() {
   const { theme, colors } = useThemeStore();
   const {
     currentMosque,
@@ -86,6 +64,9 @@ export default function App() {
     setVolume,
     togglePlay,
   } = usePlayerStore();
+
+  // Fetch stations from API
+  const { data: stations, isLoading, error } = useStations();
 
   const [fontsLoaded] = useFonts({
     Inter_400Regular: require("@expo-google-fonts/inter/400Regular/Inter_400Regular.ttf"),
@@ -108,15 +89,15 @@ export default function App() {
     return null;
   }
 
-  const handlePlay = (mosque: (typeof mosques)[0]) => {
-    if (currentMosque?.id === mosque.id) {
+  const handlePlay = (station: StationListItem) => {
+    if (currentMosque?.id === station._id) {
       togglePlay();
     } else {
       setCurrentMosque({
-        id: mosque.id,
-        name: mosque.name,
-        location: mosque.location,
-        mountPoint: `/mosque-${mosque.id}`,
+        id: station._id,
+        name: station.name,
+        location: station.mosqueId?.location || "Unknown location",
+        mountPoint: station.mountPoint,
       });
       setIsPlaying(true);
     }
@@ -171,28 +152,54 @@ export default function App() {
             </ScrollView>
           </View>
 
-          {/* Mosques Section */}
+          {/* Stations Section */}
           <View style={styles.section}>
             <Text
               variant='heading'
               weight='bold'
               style={[styles.sectionTitle, { color: colors.foreground }]}>
-              Popular Mosques
+              Popular Stations
             </Text>
-            <View style={styles.mosqueList}>
-              {mosques.map((mosque) => (
-                <View key={mosque.id} style={styles.mosqueItem}>
-                  <MosqueCard
-                    name={mosque.name}
-                    location={mosque.location}
-                    listeners={mosque.listeners}
-                    isLive={mosque.isLive}
-                    isPlaying={currentMosque?.id === mosque.id && isPlaying}
-                    onPlay={() => handlePlay(mosque)}
-                  />
-                </View>
-              ))}
-            </View>
+
+            {isLoading && (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size='large' color={colors.primary} />
+                <Text
+                  style={[
+                    styles.loadingText,
+                    { color: colors.mutedForeground },
+                  ]}>
+                  Loading stations...
+                </Text>
+              </View>
+            )}
+
+            {error && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>
+                  Failed to load stations. Please try again.
+                </Text>
+              </View>
+            )}
+
+            {stations && stations.length > 0 && (
+              <View style={styles.mosqueList}>
+                {stations.map((station) => (
+                  <View key={station._id} style={styles.mosqueItem}>
+                    <MosqueCard
+                      name={station.name}
+                      location={station.mosqueId?.location || "Unknown"}
+                      listeners={station.stats?.totalListeners}
+                      isLive={station.isLive}
+                      streamUrl={station.streamUrl}
+                      currentTrack={station.currentTrack}
+                      isPlaying={currentMosque?.id === station._id && isPlaying}
+                      onPlay={() => handlePlay(station)}
+                    />
+                  </View>
+                ))}
+              </View>
+            )}
           </View>
 
           {/* Bottom padding for audio player */}
@@ -264,4 +271,31 @@ const styles = StyleSheet.create({
   mosqueItem: {
     marginBottom: 16,
   },
+  loadingContainer: {
+    paddingVertical: 40,
+    alignItems: "center",
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 14,
+  },
+  errorContainer: {
+    paddingVertical: 40,
+    paddingHorizontal: 16,
+    alignItems: "center",
+  },
+  errorText: {
+    fontSize: 14,
+    color: "#EF4444",
+    textAlign: "center",
+  },
 });
+
+// Wrap AppContent with QueryProvider
+export default function App() {
+  return (
+    <QueryProvider>
+      <AppContent />
+    </QueryProvider>
+  );
+}
