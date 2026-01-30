@@ -46,8 +46,8 @@ const features: {
     gradient: "purple",
   },
   {
-    title: "Community",
-    description: "Connect with your local mosque community",
+    title: "Donation",
+    description: "Connect with your local mosque communi",
     icon: Heart,
     gradient: "accent",
   },
